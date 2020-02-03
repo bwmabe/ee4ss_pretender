@@ -15,7 +15,6 @@ freq_4  = 250
 Acc_X = 100
 Acc_Y = 200
 Acc_Z = 300
-
 BVP  = 400
 IBI  = 500
 GSR  = 600
