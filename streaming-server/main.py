@@ -24,7 +24,26 @@ BAT  = 900
 TAG  = 1000
 
 
-class 
+class Subscription:
+    enabled = False
+    freq = 0
+    label = ""
+    value = 0
+
+    def __init__(self, l, fr, val):
+        self.freq = fr
+        self.label = l
+        self.value = val
+
+    def send(self):
+
+
+def subscriptions():
+    Acc_X = Subscription("acc_x", freq_64, 100)
+    Acc_Y = Subscription("acc_y", freq_64, 200)
+    Acc_Z = Subscription("acc_z", freq_64, 300)
+
+
 
 # Helper function to generate timestamps in EE4 format
 def now():
@@ -32,7 +51,7 @@ def now():
 
 def cmd_handler(command):
     t = command.split()
-    if t == []:
+    if not t:
         return ""
     cmd = t[0].strip()
     args = command.split()[1:]
@@ -46,9 +65,13 @@ def cmd_handler(command):
         #TODO: add class for subscribed streams
         return "R " + command.strip() + " OK\n"
     elif(cmd == "pause_on"):
-		
+	    PAUSED = True
+    elif(cmd == "pause_off"):
+        PAUSED = False
     else:
+        # TODO: remove this
         return cmd
+        print(cmd)
 
 async def ee4_srv(r,w):
     while True:
