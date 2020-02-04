@@ -50,6 +50,8 @@ def now():
     return datetime.now().timestamp()
 
 def cmd_handler(command):
+    global PAUSED
+
     t = command.split()
     if not t:
         return ""
@@ -70,8 +72,8 @@ def cmd_handler(command):
         PAUSED = False
     else:
         # TODO: remove this
-        return cmd
         print(cmd)
+        return cmd
 
 async def ee4_srv(r,w):
     while True:
