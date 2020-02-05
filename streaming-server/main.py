@@ -6,6 +6,9 @@ from datetime import datetime
 
 # Global to handle pause
 PAUSED = False
+CONNECTED = False
+
+STREAMS = ["acc", "bvp", "gsr", "ibi", "tmp", "bat", "tag"]
 
 # Constants for data subscriptions
 freq_64 = 15.625
@@ -36,6 +39,8 @@ class Subscription:
         self.value = val
 
     def send(self):
+        # TODO: remove dummy print
+        print("DUMMY PRINT")
 
 
 def subscriptions():
@@ -49,27 +54,52 @@ def subscriptions():
 def now():
     return datetime.now().timestamp()
 
-def cmd_handler(command):
+def cmd_handler(command_raw):
     global PAUSED
+    global CONNECTED
+    global STREAMS
 
-    t = command.split()
+    # Empty string for testing
+    s = ""
+
+    # Temp variable
+    t = command_raw.split()
+
+    # If t does not exist, or command_raw empty, return empty
     if not t:
         return ""
+
     cmd = t[0].strip()
-    args = command.split()[1:]
+    args = command_raw.split()[1:]
     
     if(cmd == "device_list"):
         return "R device_list 2 | 9ff167 Empatica_E4 | 7a3166 Empatica_E4\n"
     elif(cmd == "device_connect"):
         # TODO: add more behavior
+        CONNECTED = True
         return "R device_connect OK\n"
     elif(cmd == "device_subscribe"):
         #TODO: add class for subscribed streams
-        return "R " + command.strip() + " OK\n"
-    elif(cmd == "pause_on"):
-	    PAUSED = True
-    elif(cmd == "pause_off"):
-        PAUSED = False
+        # --IN PROGRESS--
+        if len(args) > 1:
+            return "R device_subscribe ERR too many arguments\n"
+
+
+
+        return "R " + cmd + " " + s.join(args) + " OK\n"
+    elif(cmd == "pause"):
+        if len(args) > 1:
+            return "R pause ERR too many arguments\n"
+        else:
+            if args[0] == "ON" or args[0] == "on":
+                PAUSED = True
+                return "R pause ON\n"
+            elif args[0] == "OFF" or args[0] == "off":
+                PAUSED = False
+                return "R pause OFF\n"
+            else:
+                return "R pause ERR wrong argument\n"
+
     else:
         # TODO: remove this
         print(cmd)
@@ -99,6 +129,11 @@ async def main():
     except KeyboardInterrupt:
         exit(0)
 
+# For testing...
 if (__name__ == "__main__"):
-    asyncio.run(main())
+    # In try-except to suppress irrelevant errors
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        exit(0)
 
