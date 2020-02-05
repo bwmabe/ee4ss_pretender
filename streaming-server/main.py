@@ -44,9 +44,14 @@ class Subscription:
 
 
 def subscriptions():
-    Acc_X = Subscription("acc_x", freq_64, 100)
-    Acc_Y = Subscription("acc_y", freq_64, 200)
-    Acc_Z = Subscription("acc_z", freq_64, 300)
+    acc = Subscription("E4_Acc", freq_32, [100, 200, 300])
+    bvp = Subscription("E4_Bvp", freq_64, 400)
+    ibi = Subscription("E4_Ibi", 0, 500)
+    gsr = Subscription("E4_Gsr", freq_4,  600)
+    tmp = Subscription("E4_Temperature", freq_4, 700)
+    hr  = Subscription("E4_Hr", 0, 800)
+    bat = Subscription("E4_Bat", 0, 1.0)
+    tag = Subscription("E4_Tag", 0, 1000)
 
 
 
@@ -81,20 +86,23 @@ def cmd_handler(command_raw):
     elif(cmd == "device_subscribe"):
         #TODO: add class for subscribed streams
         # --IN PROGRESS--
-        if len(args) > 1:
+        if len(args) > 2:
             return "R device_subscribe ERR too many arguments\n"
-
-
-
-        return "R " + cmd + " " + s.join(args) + " OK\n"
+        for stream in STREAMS:
+            if args[0] == stream or args[0] == stream.upper():
+                return "R " + cmd + " " + s.join(args) + " OK\n"
     elif(cmd == "pause"):
         if len(args) > 1:
             return "R pause ERR too many arguments\n"
         else:
             if args[0] == "ON" or args[0] == "on":
+                if PAUSED:
+                    return "R pause ERR already paused\n"
                 PAUSED = True
                 return "R pause ON\n"
             elif args[0] == "OFF" or args[0] == "off":
+                if not PAUSED:
+                    return "R pause ERR not paused\n"
                 PAUSED = False
                 return "R pause OFF\n"
             else:
@@ -103,7 +111,7 @@ def cmd_handler(command_raw):
     else:
         # TODO: remove this
         print(cmd)
-        return cmd
+        return ""
 
 async def ee4_srv(r,w):
     while True:
@@ -121,7 +129,7 @@ async def ee4_srv(r,w):
 
 async def main():
     srv = await asyncio.start_server(ee4_srv, '127.0.0.1', 28000)
-    print("srv start:", now())
+    print("Server started!")
 
     try:
         async with srv:
