@@ -30,8 +30,20 @@ class Subscription:
         self.type = t
 
     def send(self):
-        # TODO: remove dummy print
-        print("DUMMY PRINT")
+        # TODO:
+        # -- Ask about heart rate and IBI frequencies
+        # -- Add simulation for button press freq values?
+        if self.freq > 0.0:
+            if now() - self.last_send > self.freq:
+                if self.type = "acc":
+                    val = " "
+                    for i in self.value:
+                        val += " " + str(i)
+                    return self.label + " " + now() + val
+                else:
+                    return self.label + " " + now() + str(self.value)
+            else:
+                return None
 
     def enable(self):
         self.enabled = True
@@ -62,10 +74,14 @@ class Subscriptions_Holder:
 
     def send_enabled(self):
         payload = []
-
+        tmp = ""
         for i in self.streams:
             if i.enabled and not PAUSED:
-                payload.append()
+                tmp = i.send()
+                if tmp:
+                    payload.append(i.send())
+                    tmp = ""
+        return payload
 
 STREAMS = Subscriptions_Holder()
 
@@ -138,6 +154,12 @@ async def ee4_srv(r,w):
             print("invalid char sent")
 
         await w.drain()
+
+        stream_data = STREAMS.send_enabled
+
+        if stream_data:
+            for i in stream_data:
+                i
 
     w.close()
 
