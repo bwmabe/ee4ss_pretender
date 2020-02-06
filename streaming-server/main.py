@@ -8,52 +8,66 @@ from datetime import datetime
 PAUSED = False
 CONNECTED = False
 
-STREAMS = ["acc", "bvp", "gsr", "ibi", "tmp", "bat", "tag"]
+STREAM_TYPES = ["acc", "bvp", "gsr", "ibi", "tmp", "bat", "tag", "hr"]
 
 # Constants for data subscriptions
-freq_64 = 15.625
+freq_64 = 15.625 / 1000.0
 freq_32 = freq_64 * 2.0
-freq_4  = 250
-
-Acc_X = 100
-Acc_Y = 200
-Acc_Z = 300
-BVP  = 400
-IBI  = 500
-GSR  = 600
-TEMP = 700
-HR   = 800
-BAT  = 900
-TAG  = 1000
-
+freq_4  = 250 / 1000.0
 
 class Subscription:
     enabled = False
     freq = 0
     label = ""
+    type = ""
     value = 0
+    last_send = 0
 
-    def __init__(self, l, fr, val):
+    def __init__(self, l, t, fr, val):
         self.freq = fr
         self.label = l
         self.value = val
+        self.type = t
 
     def send(self):
         # TODO: remove dummy print
         print("DUMMY PRINT")
 
+    def enable(self):
+        self.enabled = True
 
-def subscriptions():
-    acc = Subscription("E4_Acc", freq_32, [100, 200, 300])
-    bvp = Subscription("E4_Bvp", freq_64, 400)
-    ibi = Subscription("E4_Ibi", 0, 500)
-    gsr = Subscription("E4_Gsr", freq_4,  600)
-    tmp = Subscription("E4_Temperature", freq_4, 700)
-    hr  = Subscription("E4_Hr", 0, 800)
-    bat = Subscription("E4_Bat", 0, 1.0)
-    tag = Subscription("E4_Tag", 0, 1000)
+    def disable(self):
+        self.enabled = False
 
 
+class Subscriptions_Holder:
+    streams = [Subscription("E4_Acc", "acc", freq_32, [100, 200, 300]),
+    Subscription("E4_Bvp", "bvp", freq_64, 400),
+    Subscription("E4_Ibi", "ibi", 0, 500),
+    Subscription("E4_Gsr", "gsr", freq_4,  600),
+    Subscription("E4_Temperature", "tmp", freq_4, 700),
+    Subscription("E4_Hr", "hr", 0, 800),
+    Subscription("E4_Bat", "bat", 0, 1.0),
+    Subscription("E4_Tag", "tag", 0, 1000)]
+
+    def enable(self, t):
+        for i in self.streams:
+            if i.type == t or i.type == t.lower():
+                i.enable()
+
+    def disable(self, t):
+        for i in self.streams:
+            if i.type == t or i.type == t.lower():
+                i.disable()
+
+    def send_enabled(self):
+        payload = []
+
+        for i in self.streams:
+            if i.enabled and not PAUSED:
+                payload.append()
+
+STREAMS = Subscriptions_Holder()
 
 # Helper function to generate timestamps in EE4 format
 def now():
@@ -88,7 +102,7 @@ def cmd_handler(command_raw):
         # --IN PROGRESS--
         if len(args) > 2:
             return "R device_subscribe ERR too many arguments\n"
-        for stream in STREAMS:
+        for stream in STREAM_TYPES:
             if args[0] == stream or args[0] == stream.upper():
                 return "R " + cmd + " " + s.join(args) + " OK\n"
     elif(cmd == "pause"):
