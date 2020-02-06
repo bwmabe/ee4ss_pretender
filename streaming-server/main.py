@@ -35,7 +35,7 @@ class Subscription:
         # -- Add simulation for button press freq values?
         if self.freq > 0.0:
             if now() - self.last_send > self.freq:
-                if self.type = "acc":
+                if self.type == "acc":
                     val = " "
                     for i in self.value:
                         val += " " + str(i)
@@ -144,6 +144,7 @@ def cmd_handler(command_raw):
         return ""
 
 async def ee4_srv(r,w):
+    # TODO: fix timing here
     while True:
         msg_raw = await r.read(100)
         
@@ -155,11 +156,13 @@ async def ee4_srv(r,w):
 
         await w.drain()
 
-        stream_data = STREAMS.send_enabled
+        stream_data = STREAMS.send_enabled()
+
+        print(stream_data)
 
         if stream_data:
             for i in stream_data:
-                i
+                print("")
 
     w.close()
 
