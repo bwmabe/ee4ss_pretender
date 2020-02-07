@@ -39,9 +39,9 @@ class Subscription:
                     val = " "
                     for i in self.value:
                         val += " " + str(i)
-                    return self.label + " " + now() + val
+                    return self.label + " " + str(now()) + val + "\n"
                 else:
-                    return self.label + " " + now() + str(self.value)
+                    return self.label + " " + str(now()) + " " + str(self.value) + "\n"
             else:
                 return None
 
@@ -113,6 +113,7 @@ def cmd_handler(command_raw):
         # TODO: add more behavior
         CONNECTED = True
         return "R device_connect OK\n"
+
     elif(cmd == "device_subscribe"):
         #TODO: add class for subscribed streams
         # --IN PROGRESS--
@@ -120,7 +121,10 @@ def cmd_handler(command_raw):
             return "R device_subscribe ERR too many arguments\n"
         for stream in STREAM_TYPES:
             if args[0] == stream or args[0] == stream.upper():
+                sub = args[0].lower()
+                STREAMS.enable(sub)
                 return "R " + cmd + " " + s.join(args) + " OK\n"
+
     elif(cmd == "pause"):
         if len(args) > 1:
             return "R pause ERR too many arguments\n"
@@ -153,16 +157,19 @@ async def ee4_srv(r,w):
             w.write(cmd_handler(msg).encode())
         except UnicodeDecodeError:
             print("invalid char sent")
+        except AttributeError:
+            continue
 
         await w.drain()
 
+        # TODO: Move to coroutine
         stream_data = STREAMS.send_enabled()
 
         print(stream_data)
 
         if stream_data:
             for i in stream_data:
-                print("")
+                w.write(i.encode())
 
     w.close()
 
