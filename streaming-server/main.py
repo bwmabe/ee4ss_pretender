@@ -143,14 +143,17 @@ def cmd_handler(command_raw):
                 return "R pause ERR wrong argument\n"
 
     else:
-        # TODO: remove this
-        print(cmd)
         return ""
 
-async def ee4_srv(r,w):
-    # TODO: fix timing here
+async def reader(r):
     while True:
-        msg_raw = await r.read(100)
+        a = r.read(100)
+        print(a)
+    return a
+
+async def ee4_srv(r,w):
+    while True:
+        msg_raw = await reader(r)
         
         try:
             msg = msg_raw.decode()
@@ -159,19 +162,28 @@ async def ee4_srv(r,w):
             print("invalid char sent")
         except AttributeError:
             continue
+        
+        await subscription_updater(w)
 
-        await w.drain()
+        #w.drain()
 
         # TODO: Move to coroutine
-        stream_data = STREAMS.send_enabled()
+        #stream_data = STREAMS.send_enabled()
 
-        print(stream_data)
+        #print(stream_data)
 
-        if stream_data:
-            for i in stream_data:
-                w.write(i.encode())
+        #if stream_data:
+        #    for i in stream_data:
+        #        w.write(i.encode())
 
     w.close()
+    
+async def subscription_updater(w):
+    stream_data = STREAMS.send_enabled()
+    
+    if stream_data:
+            for i in stream_data:
+                w.write(i.encode())
 
 async def main():
     srv = await asyncio.start_server(ee4_srv, '127.0.0.1', 28000)
